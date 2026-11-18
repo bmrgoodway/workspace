@@ -1,0 +1,68 @@
+# 서버 함수 검사·자동 배포
+#  · 모든 push·PR: 서버 함수 코드 형식 검사(deno check)만 합니다.
+#  · main 에 push(또는 수동 실행): 검사가 통과하고 관리자가 이 앱의 '서버 함수 자동 배포'를 켜 두었으면
+#    BMR APPS 허브가 이 앱 몫의 서버 함수(workspace-fn, workspace-<이름> 3개까지) 중 바뀐 것만 배포합니다(수동 실행은 모두).
+#    새 workspace-<이름> 폴더는 이때 새 함수로 만들어집니다. 꺼져 있으면 배포하지 않고 Summary 에 안내만 남깁니다(실행은 통과).
+#    저장소에는 비밀값이 없습니다. GitHub 가 서명한 1회용 신분증(OIDC)으로 허브가 '이 앱 저장소의 main' 인지 확인하고,
+#    그 커밋의 supabase/functions/<함수>/ 폴더를 GitHub 에서 직접 읽어 올립니다. 결과는 이 실행의 Summary 와 허브 감사 기록에 남습니다.
+#  · 이 파일 이름(functions-check.yml)을 바꾸면 허브가 배포를 거부합니다.
+name: 서버 함수 검사·배포
+on:
+  push:
+    paths: ['supabase/functions/**']
+  pull_request:
+    paths: ['supabase/functions/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: 타입 검사
+        working-directory: supabase/functions
+        run: deno check */index.ts
+  deploy:
+    needs: check
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: fn-deploy
+      cancel-in-progress: false
+    steps:
+      - name: 허브에 배포 요청 (workspace-fn 외)
+        env:
+          HUB_FN_DEPLOY: https://wjvqavianqceeyyxonfg.supabase.co/functions/v1/hub-fn-deploy
+        run: |
+          set -euo pipefail
+          OIDC=$(curl -sSf -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=bmr-apps-fn-deploy" | jq -r .value)
+          echo "::add-mask::$OIDC"
+          CODE=$(curl -sS -o out.json -w '%{http_code}' --max-time 300 -X POST -H "Authorization: Bearer $OIDC" "$HUB_FN_DEPLOY" || echo 000)
+          echo "허브 응답 $CODE"; cat out.json || true; echo
+          {
+            echo "### 서버 함수 배포"
+            if [ "$CODE" = 200 ]; then
+              jq -r '"커밋 \(.commit[0:7])", ((.results // [{fn: .fn, status: "deployed", version_before: .version_before, version: .version, files: .files, health: .health}])[]
+                | if .status == "unchanged" then "- 함수 `\(.fn)` v\(.version) — 바뀌지 않아 건너뜀"
+                  elif .status == "skipped" then "- 함수 `\(.fn)` — 건너뜀 (\(.note // "더 새 커밋"))"
+                  else "- 함수 `\(.fn)` \(if .status == "created" then "**새로 만듦** " else "" end)v\(.version_before) → **v\(.version)** (파일 \(.files)개, /health \(.health // "-"))" end)' out.json
+            elif [ "$CODE" = 403 ] && [ "$(jq -r '.disabled // false' out.json 2>/dev/null)" = true ]; then
+              echo "- ⚠️ $(jq -r .error out.json)"
+            elif [ "$CODE" = 409 ]; then
+              echo "- 건너뜀: $(jq -r .error out.json)"
+            else
+              echo "- ❌ 실패 ($CODE): $(jq -r '.error // "응답 없음"' out.json 2>/dev/null || echo '응답 없음')"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          OFF=$(jq -r '.disabled // false' out.json 2>/dev/null || echo false)
+          [ "$OFF" = true ] && echo "::warning title=서버 함수 자동 배포 꺼짐::$(jq -r .error out.json)"
+          # 꺼짐(403 disabled)은 코드 문제가 아니므로 실패로 표시하지 않는다 (경고만)
+          [ "$CODE" = 200 ] || [ "$CODE" = 409 ] || { [ "$CODE" = 403 ] && [ "$OFF" = true ]; }
