@@ -1,0 +1,21 @@
+{
+  "name": "별무리 워크스페이스",
+  "short_name": "별무리 WS",
+  "description": "별무리학교 교내 워크스페이스 — 채널 · 스레드 · DM · AI 조력자 Alter",
+  "lang": "ko",
+  "dir": "ltr",
+  "start_url": "/workspace/",
+  "scope": "/workspace/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#0abbee",
+  "icons": [
+    {
+      "src": "https://wjvqavianqceeyyxonfg.supabase.co/functions/v1/hub-favicon?slug=workspace",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

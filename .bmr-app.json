@@ -1,0 +1,12 @@
+{
+  "slug": "workspace",
+  "name": "별무리 워크스페이스",
+  "schema": "workspace",
+  "db_role": "workspace_dev",
+  "bucket": "workspace",
+  "function": "workspace-fn",
+  "secret_prefix": "WORKSPACE_",
+  "supabase_ref": "wjvqavianqceeyyxonfg",
+  "url": "https://bmrgoodway.github.io/workspace/",
+  "template": "bmr-app-templates v2"
+}

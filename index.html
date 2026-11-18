@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>별무리 워크스페이스 · BMR APPS</title>
+<meta name="description" content="별무리학교 교내 워크스페이스 — 채널·스레드·DM, 그리고 AI 조력자 Alter">
+<meta name="theme-color" content="#0abbee">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="https://wjvqavianqceeyyxonfg.supabase.co/functions/v1/hub-favicon?slug=workspace">
+</head>
+<body>
+<a class="skip" href="#composer-input">메시지 쓰기로 건너뛰기</a>
+
+<header class="top">
+  <a class="mark" href="./" aria-label="별무리 워크스페이스 홈">
+    <svg viewBox="0 0 40 40" width="34" height="34" aria-hidden="true" focusable="false">
+      <rect x="1" y="1" width="38" height="38" fill="none" stroke="currentColor" stroke-width="2"></rect>
+      <path d="M8 12h16v9H13l-5 5z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"></path>
+      <path d="M16 25h14v8l-4-3h-10z" fill="currentColor"></path>
+      <path d="M29 8l1.6 3.4L34 13l-3.4 1.6L29 18l-1.6-3.4L24 13l3.4-1.6z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"></path>
+    </svg>
+  </a>
+  <div class="brand">
+    <b data-app-name>별무리 워크스페이스</b>
+    <small>채널 · 스레드 · DM · AI</small>
+  </div>
+  <div class="top-right">
+    <span id="conn" class="conn" hidden><i></i><span id="conn-text">연결됨</span></span>
+    <span id="who" class="who" hidden></span>
+    <button id="bell" class="btn ghost small bell" type="button" aria-pressed="false" title="새 메시지 알림" hidden>🔔 알림</button>
+    <button id="admin-open" class="btn ghost small link-btn" type="button" title="멤버·채널·연동 관리" aria-haspopup="dialog" hidden>🛠️ 관리</button>
+    <button id="logout" class="btn ghost small" type="button" hidden>로그아웃</button>
+    <button id="open-sidebar" class="btn icon mobile-only" type="button" aria-label="채널 목록 열기" aria-controls="sidebar" aria-expanded="false" hidden>
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2.5" fill="none"></path></svg>
+      <span id="menu-badge" class="menu-badge" hidden></span>
+    </button>
+  </div>
+</header>
+
+<!-- 처음 상태: 확인 중 -->
+<div id="boot" class="boot" role="status">
+  <p class="boot-txt">워크스페이스를 여는 중…</p>
+</div>
+
+<!-- 로그인 / 들어가기 -->
+<main id="login" class="login" hidden>
+  <section class="hero">
+    <div class="hero-copy">
+      <span class="eyebrow">BMR APPS · 교내 워크스페이스</span>
+      <h1>별무리<br>워크스페이스</h1>
+      <p class="desc">채널로 나누고, 스레드로 이어 가고, 필요할 때 <b>@AI</b> 를 부르세요. 선생님들을 위한 슬랙형 공간입니다.</p>
+      <ul class="feat">
+        <li><b>채널</b> — 일반 · 수업-나눔 · AI-라운지</li>
+        <li><b>스레드</b> — 메시지마다 답글을 모아 보기</li>
+        <li><b>DM</b> — 선생님과 1:1</li>
+        <li><b>Alter</b> — 나만의 AI 조력자</li>
+      </ul>
+    </div>
+    <div class="hero-form">
+      <div class="hero-form-in">
+        <h2>시작하기</h2>
+        <p class="lead">BMR APPS 계정(구글)으로 로그인합니다. 별무리학교 메일(<b>@bmrschool.org</b> · <b>@bmrschool.net</b>)은 처음 로그인할 때 자동으로 등록됩니다.</p>
+        <button id="google-login" class="btn btn-google btn-lg" type="button">
+          <span class="g" aria-hidden="true">G</span> 구글로 로그인
+        </button>
+        <button id="preview-login" class="btn btn-preview btn-lg" type="button">
+          미리보기로 둘러보기
+        </button>
+        <p class="tiny">미리보기는 이 브라우저 안에서만 도는 연습용 화면이에요. 실제 데이터는 저장되지 않고, Alter 도 정해진 예시로만 답합니다.</p>
+        <p id="login-msg" class="login-msg" hidden></p>
+        <button id="login-logout" class="btn ghost small" type="button" hidden>지금 계정에서 로그아웃하기</button>
+      </div>
+    </div>
+  </section>
+  <section class="login-foot">
+    <p>로그인은 BMR APPS 공용 계정입니다. 이 앱에서만 로그아웃됩니다.</p>
+    <p><a href="https://bmrgoodway.github.io/">BMR APPS</a> · <a href="https://bmrgoodway.github.io/guide">개발 가이드</a></p>
+  </section>
+</main>
+
+<!-- 워크스페이스 -->
+<div id="workspace" class="workspace" hidden>
+  <div id="backdrop" class="backdrop" hidden></div>
+
+  <aside id="sidebar" class="sidebar" aria-label="채널과 멤버">
+    <div class="ws-head">
+      <div class="ws-mark" aria-hidden="true">별</div>
+      <div class="ws-txt">
+        <b>별무리 워크스페이스</b>
+        <small id="ws-sub">충남 금산 · 교내</small>
+      </div>
+    </div>
+    <div class="side-scroll">
+      <section class="side-sec">
+        <h2 class="side-title">채널</h2>
+        <ul id="channel-list" class="side-list"></ul>
+        <button id="new-channel" class="side-add" type="button">＋ 새 채널</button>
+        <form id="new-channel-form" class="new-channel" hidden>
+          <label class="sr" for="new-channel-name">채널 이름</label>
+          <input id="new-channel-name" name="name" maxlength="40" placeholder="예: 평가-나눔" autocomplete="off" required>
+          <label class="sr" for="new-channel-desc">설명</label>
+          <input id="new-channel-desc" name="description" maxlength="200" placeholder="무엇을 나누는 채널인가요? (선택)" autocomplete="off">
+          <div class="row">
+            <button class="btn small" type="submit">만들기</button>
+            <button class="btn ghost small" type="button" id="new-channel-cancel">취소</button>
+          </div>
+        </form>
+      </section>
+      <section class="side-sec">
+        <h2 class="side-title">AI 어시스턴트</h2>
+        <ul id="ai-list" class="side-list"></ul>
+      </section>
+      <section class="side-sec">
+        <h2 class="side-title">다이렉트 메시지</h2>
+        <ul id="dm-list" class="side-list"></ul>
+      </section>
+    </div>
+    <div class="side-foot">
+      <p id="preview-note" class="preview-note" hidden><b>미리보기</b> 연습용 화면 · 저장되지 않음</p>
+      <p id="side-tip" class="side-tip">💡 메시지에서 <b>@AI</b> 를 부르면 Alter 가 바로 답해요.</p>
+    </div>
+  </aside>
+
+  <section class="chat" aria-label="대화">
+    <header class="chat-head">
+      <div class="chat-title">
+        <h1 id="chan-name"># 일반</h1>
+        <p id="chan-desc" class="chan-desc">채널을 고르세요</p>
+      </div>
+      <div class="chat-actions">
+        <span id="chan-kind" class="badge" hidden>AI</span>
+        <button id="huddle-audio" class="btn ghost small hd-btn" type="button" aria-pressed="false" title="음성 회의 시작" hidden>🎙️ 음성</button>
+        <button id="huddle-video" class="btn ghost small hd-btn" type="button" aria-pressed="false" title="화상 회의 시작" hidden>📹 화상</button>
+        <span id="chan-count" class="chan-count"></span>
+      </div>
+    </header>
+
+    <!-- 공지 고정 — 채널 위에 붙어 있는 공지 (관리자가 고정, 모두가 본다) -->
+    <div id="pin-banner" class="pin-banner" hidden>
+      <button id="pin-jump" class="pin-jump" type="button" title="이 공지로 이동">
+        <span class="pin-ico" aria-hidden="true">📌</span>
+        <span class="pin-body">
+          <b id="pin-who"></b>
+          <span id="pin-text"></span>
+        </span>
+      </button>
+      <button id="pin-clear" class="btn ghost small pin-clear" type="button" title="공지 고정 해제" hidden>고정 해제</button>
+    </div>
+
+    <!-- 음성·화상 회의(허들) — 메시지를 보면서 함께 이야기한다 -->
+    <section id="huddle" class="huddle" aria-label="음성·화상 회의" hidden>
+      <div class="huddle-head">
+        <span class="hd-live"><i></i>회의 중</span>
+        <b id="huddle-title" class="hd-title"></b>
+        <span id="huddle-count" class="hd-count"></span>
+        <div class="hd-head-actions">
+          <button id="huddle-big" class="btn ghost small" type="button" aria-pressed="false">크게 보기</button>
+          <button id="huddle-leave" class="btn small" type="button">나가기</button>
+        </div>
+      </div>
+      <div id="huddle-tiles" class="huddle-tiles" role="list"></div>
+      <div class="huddle-controls">
+        <button id="huddle-mic" class="hd-ctl" type="button" aria-pressed="true">🎙️ <span>마이크</span></button>
+        <button id="huddle-cam" class="hd-ctl" type="button" aria-pressed="false">📹 <span>카메라</span></button>
+        <button id="huddle-screen" class="hd-ctl" type="button" aria-pressed="false">🖥️ <span>화면</span></button>
+        <button id="huddle-collapse" class="hd-ctl" type="button" aria-pressed="false">🪟 <span>접기</span></button>
+        <button id="huddle-leave2" class="hd-ctl danger" type="button">🚪 <span>나가기</span></button>
+      </div>
+      <p id="huddle-note" class="huddle-note" hidden></p>
+    </section>
+
+    <div id="chat-body" class="chat-body">
+      <div id="messages" class="messages" role="log" aria-live="polite" aria-relevant="additions text"></div>
+      <div id="chat-empty" class="chat-empty" hidden>
+        <p class="empty-emoji" aria-hidden="true">💬</p>
+        <b>아직 조용하네요</b>
+        <p>첫 메시지를 남겨 보세요. <b>@AI</b> 를 부르면 Alter 가 답글을 달아 줍니다.</p>
+      </div>
+      <div id="chat-error" class="chat-error" hidden></div>
+    </div>
+
+    <form id="composer" class="composer" autocomplete="off">
+      <div id="composer-files" class="att-pending" hidden></div>
+      <button type="button" id="attach" class="chip-file" title="사진·파일 첨부 (끌어다 놓기·붙여넣기도 됩니다)" aria-label="사진·파일 첨부">📎</button>
+      <button type="button" id="insert-ai" class="chip-ai" title="메시지에 @AI 를 넣습니다">@AI</button>
+      <label class="sr" for="composer-input">메시지</label>
+      <textarea id="composer-input" rows="1" maxlength="4000" placeholder="#일반 에 메시지 보내기" enterkeyhint="send"></textarea>
+      <input type="file" id="composer-file" class="file-in" multiple tabindex="-1" aria-hidden="true">
+      <button type="submit" id="send" class="btn send" disabled>보내기</button>
+    </form>
+    <p class="composer-hint"><b>Enter</b> 보내기 · <b>Shift+Enter</b> 줄바꿈 · <b>@AI</b> 부르기 · <b>📎</b> 사진·파일(끌어다 놓기·붙여넣기)</p>
+  </section>
+
+  <aside id="thread" class="thread" aria-label="스레드" hidden>
+    <header class="thread-head">
+      <h2>스레드</h2>
+      <button id="close-thread" class="btn ghost icon" type="button" aria-label="스레드 닫기">✕</button>
+    </header>
+    <div class="thread-body">
+      <div id="thread-parent" class="thread-parent"></div>
+      <div class="thread-divider"><span id="thread-count">답글</span></div>
+      <div id="thread-replies" class="thread-replies"></div>
+    </div>
+    <form id="thread-composer" class="composer thread-composer" autocomplete="off">
+      <div id="thread-files" class="att-pending" hidden></div>
+      <button type="button" id="thread-attach" class="chip-file" title="사진·파일 첨부" aria-label="사진·파일 첨부">📎</button>
+      <button type="button" id="thread-insert-ai" class="chip-ai" title="답글에 @AI 를 넣습니다">@AI</button>
+      <label class="sr" for="thread-input">스레드 답글</label>
+      <textarea id="thread-input" rows="1" maxlength="4000" placeholder="스레드에 답글 달기" enterkeyhint="send"></textarea>
+      <input type="file" id="thread-file" class="file-in" multiple tabindex="-1" aria-hidden="true">
+      <button type="submit" id="thread-send" class="btn send" disabled>답글</button>
+    </form>
+  </aside>
+</div>
+
+<div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="사진 크게 보기" hidden>
+  <div class="lightbox-bar">
+    <span id="lightbox-name" class="lightbox-name"></span>
+    <a id="lightbox-download" class="btn ghost small" href="#" target="_blank" rel="noreferrer noopener">내려받기</a>
+    <a id="lightbox-open" class="btn ghost small" href="#" target="_blank" rel="noreferrer noopener">새 탭</a>
+    <button id="lightbox-close" class="btn ghost icon" type="button" aria-label="닫기">✕</button>
+  </div>
+  <img id="lightbox-img" class="lightbox-img" alt="">
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<!-- 관리자 콘솔 (🛠️ 관리 — 관리자만) -->
+<div id="admin-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="admin-title" hidden>
+  <div class="modal-card admin-card">
+    <header class="modal-head">
+      <h2 id="admin-title">🛠️ 관리자 콘솔</h2>
+      <button id="admin-close" class="btn ghost icon" type="button" aria-label="닫기">✕</button>
+    </header>
+    <div class="admin-tabs" role="tablist" aria-label="관리 항목">
+      <button class="admin-tab on" id="tab-members" type="button" role="tab" data-tab="members" aria-selected="true" aria-controls="admin-panel-members">👥 멤버·초대</button>
+      <button class="admin-tab" id="tab-channels" type="button" role="tab" data-tab="channels" aria-selected="false" aria-controls="admin-panel-channels">💬 채널 관리</button>
+      <button class="admin-tab" id="tab-system" type="button" role="tab" data-tab="system" aria-selected="false" aria-controls="admin-panel-system">🔑 연동·시스템</button>
+    </div>
+    <div class="modal-body">
+      <!-- 1. 멤버 · 초대 -->
+      <section id="admin-panel-members" class="admin-panel" role="tabpanel" aria-labelledby="tab-members">
+        <section class="link-sec">
+          <h3>새 멤버 초대</h3>
+          <form id="invite-form" class="invite-form">
+            <div class="invite-row">
+              <label class="sr" for="invite-email">이메일</label>
+              <input id="invite-email" type="email" maxlength="200" placeholder="예: teacher@gmail.com" autocomplete="off" required>
+              <label class="sr" for="invite-name">이름</label>
+              <input id="invite-name" maxlength="40" placeholder="이름 (선택)" autocomplete="off">
+            </div>
+            <div class="invite-row">
+              <label class="sr" for="invite-role">역할</label>
+              <select id="invite-role">
+                <option value="member" selected>멤버</option>
+                <option value="admin">관리자</option>
+              </select>
+              <label class="invite-check"><input type="checkbox" id="invite-mail" checked> <span>✉️ 초대 메일 함께 보내기</span></label>
+              <button class="btn" type="submit" id="invite-btn">초대 보내기</button>
+            </div>
+          </form>
+          <p id="invite-note" class="modal-note" hidden></p>
+          <p class="modal-tiny">초대 시 안내 메일을 보내고, 초대된 이메일의 <b>Google 계정</b>으로 로그인하면 바로 참여할 수 있어요. 메일은 <code>workspace@mail.bmrschool.net</code> 에서 나가고, 이미 보낸 초대는 목록의 <b>📧 재발송</b>으로 다시 보낼 수 있습니다. 학교 메일(<code>@bmrschool.org</code> · <code>@bmrschool.net</code>)은 초대 없이도 들어옵니다.</p>
+        </section>
+        <section class="link-sec">
+          <h3>대기 중인 초대</h3>
+          <div id="invite-list" class="admin-list"></div>
+        </section>
+        <section class="link-sec">
+          <h3>멤버</h3>
+          <div id="admin-member-list" class="admin-list"></div>
+        </section>
+      </section>
+
+      <!-- 2. 채널 관리 -->
+      <section id="admin-panel-channels" class="admin-panel" role="tabpanel" aria-labelledby="tab-channels" hidden>
+        <p class="modal-lead">공개 채널의 이름·설명을 고치거나 채널을 지웁니다. <b>#일반</b>은 기본 채널이라 지울 수 없어요. DM·AI 방은 이 목록에 나오지 않습니다.</p>
+        <div id="admin-channel-list" class="admin-list"></div>
+      </section>
+
+      <!-- 3. 연동 · 시스템 -->
+      <section id="admin-panel-system" class="admin-panel" role="tabpanel" aria-labelledby="tab-system" hidden>
+        <p id="admin-note" class="modal-note" hidden></p>
+        <section class="link-sec">
+          <h3>시스템 현황</h3>
+          <div id="sys-cards" class="sys-cards"></div>
+          <p id="ai-note" class="modal-tiny"></p>
+          <p class="modal-tiny">관리 화면을 열 때마다 새로 읽습니다. 열쇠·비밀번호 같은 값은 여기에 보이지 않아요.</p>
+        </section>
+
+        <section class="link-sec">
+          <h3>새 연동 열쇠 발급</h3>
+          <p class="modal-lead">Alter(피클)이나 Cursor 같은 도구가 이 워크스페이스의 <b>공개 채널</b>을 읽고 글을 쓸 수 있게 열쇠를 발급합니다. <b>DM · 개인 AI 방은 열리지 않습니다.</b></p>
+          <form id="token-form" class="link-form">
+            <label class="sr" for="token-name">열쇠 이름</label>
+            <input id="token-name" maxlength="60" placeholder="예: 피클 (Alter), Cursor MCP" autocomplete="off" required>
+            <button class="btn" type="submit" id="token-issue">발급</button>
+          </form>
+          <div id="token-new" class="token-new" hidden>
+            <p class="token-warn">⚠️ 이 열쇠는 <b>지금 한 번만</b> 보입니다. 복사해서 안전한 곳에 두세요.</p>
+            <div class="copy-row">
+              <code id="token-value" class="token-value"></code>
+              <button id="token-copy" class="btn small" type="button">복사</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="link-sec">
+          <h3>MCP 서버 주소</h3>
+          <div class="copy-row">
+            <code id="mcp-url" class="token-value"></code>
+            <button id="mcp-url-copy" class="btn small ghost" type="button">복사</button>
+          </div>
+          <h3>MCP 설정 (Cursor · Claude Desktop)</h3>
+          <pre id="mcp-json" class="mcp-json"></pre>
+          <div class="copy-row"><button id="mcp-json-copy" class="btn small ghost" type="button">설정 복사</button></div>
+          <p class="modal-tiny">Cursor 는 <code>.cursor/mcp.json</code> 에 그대로 붙여 넣으면 됩니다. Claude Desktop 은 원격 주소를 바로 붙이지 못해 command 에 <code>npx -y mcp-remote &lt;주소&gt; --header "Authorization: Bearer &lt;열쇠&gt;"</code> 를 넣습니다.</p>
+        </section>
+
+        <section class="link-sec">
+          <h3>발급된 열쇠</h3>
+          <div id="token-list" class="token-list"></div>
+        </section>
+
+        <section class="link-sec">
+          <h3>봇 REST API</h3>
+          <p class="modal-tiny">같은 열쇠로 <code>/bot/channels</code> · <code>/bot/messages</code>(GET·POST) · <code>/bot/search</code> 도 부를 수 있습니다. 모두 공개 채널만 다룹니다.</p>
+        </section>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
