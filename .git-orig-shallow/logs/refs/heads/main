@@ -1,3 +1,0 @@
-0000000000000000000000000000000000000000 08b5506bb8e2d7e3f75baea1206be19b33234efb Unknown <unknown@workspace.(none)> 1794959247 +0900	clone: from https://github.com/bmr-apps/workspace.git
-08b5506bb8e2d7e3f75baea1206be19b33234efb 93e213d9eaaad71a2a2444f321ce11f2a7d9a1a1 Mr.GoodwaY <mrgoodway@bmrschool.org> 1794960658 +0900	commit: 개인용: 새 Supabase·조직·도메인 반영
-93e213d9eaaad71a2a2444f321ce11f2a7d9a1a1 26ac5c5e29df4e1227c83561f6d5cd3a8852e206 Mr.GoodwaY <mrgoodway@bmrschool.org> 1794960658 +0900	commit: 워크플로 파일은 웹에서 추가(앱 workflows 권한 없음)
